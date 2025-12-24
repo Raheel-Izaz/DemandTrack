@@ -1,0 +1,6 @@
+@DemandTrack_HostAddress = http://localhost:5209
+
+GET {{DemandTrack_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
