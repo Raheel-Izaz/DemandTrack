@@ -330,7 +330,7 @@ namespace DemandTrack.Controllers
             };
 
             _context.DemandItems.Add(newItem);
-            await _context.SaveChangesAsync();
+            {
 
             return CreatedAtAction(nameof(GetDemand), new { id = demandId }, newItem);
         }
