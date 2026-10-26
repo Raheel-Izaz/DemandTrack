@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
 namespace DemandTrack.Models
 {
     public class DemandItem
@@ -8,16 +5,18 @@ namespace DemandTrack.Models
         public int Id { get; set; }
 
         public int DemandId { get; set; }
-        [JsonIgnore]
         public Demand? Demand { get; set; }
 
-        public int BookId { get; set; }
-        [JsonIgnore]
-        public Book? Book { get; set; }
+        public int ProductId { get; set; }
+        public Product? Product { get; set; }
 
         public int RequestedQty { get; set; }
-        
-        [JsonIgnore]
-        public ICollection<SupplyItem> SupplyItems { get; set; } = new List<SupplyItem>();
+        public int SuppliedQty { get; set; } = 0;
+        public int RemainingQty { get; set; } = 0;
+        public decimal UnitPrice { get; set; } = 0.0m;
+
+        public string Status { get; set; } = "Pending"; // Pending, PartiallyReceived, Completed, Backordered
+
+        public ICollection<SupplierInvoiceItem> InvoiceItems { get; set; } = new List<SupplierInvoiceItem>();
     }
 }
