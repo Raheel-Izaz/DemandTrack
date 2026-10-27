@@ -10,14 +10,9 @@ namespace DemandTrack.Controllers
 {
     [ApiController]
     [Route("api/products")]
-    public class ProductsController : ControllerBase
+    public class ProductsController(AppDbContext context) : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public ProductsController(AppDbContext context)
-        {
-            _context = context;
-        }
+        private readonly AppDbContext _context = context;
 
         // GET: api/products
         [HttpGet]

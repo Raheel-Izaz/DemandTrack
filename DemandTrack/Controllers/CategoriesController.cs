@@ -11,14 +11,9 @@ namespace DemandTrack.Controllers
 {
     [ApiController]
     [Route("api/categories")]
-    public class CategoriesController : ControllerBase
+    public class CategoriesController(AppDbContext context) : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public CategoriesController(AppDbContext context)
-        {
-            _context = context;
-        }
+        private readonly AppDbContext _context = context;
 
         // GET: api/categories
         [HttpGet]
