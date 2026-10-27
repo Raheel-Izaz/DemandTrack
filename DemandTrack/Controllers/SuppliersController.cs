@@ -11,14 +11,9 @@ namespace DemandTrack.Controllers
 {
     [ApiController]
     [Route("api/suppliers")]
-    public class SuppliersController : ControllerBase
+    public class SuppliersController(AppDbContext context) : ControllerBase
     {
-        private readonly AppDbContext _context;
-
-        public SuppliersController(AppDbContext context)
-        {
-            _context = context;
-        }
+        private readonly AppDbContext _context = context;
 
         // GET: api/suppliers
         [HttpGet]
