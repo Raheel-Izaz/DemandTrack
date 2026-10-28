@@ -62,40 +62,44 @@ namespace DemandTrack.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DemandNumber")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Notes")
                         .HasColumnType("text");
 
-                    b.Property<int?>("ParentDemandId")
+                    b.Property<int>("SeasonId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("SupplierId")
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("TargetDeliveryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<int>("SupplierId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ParentDemandId");
+                    b.HasIndex("DemandNumber")
+                        .IsUnique();
+
+                    b.HasIndex("SeasonId");
 
                     b.HasIndex("SupplierId");
 
-                    b.ToTable("Demands");
+                    b.ToTable("Demands", (string)null);
                 });
 
             modelBuilder.Entity("DemandTrack.Models.DemandItem", b =>
@@ -118,9 +122,8 @@ namespace DemandTrack.Migrations
                     b.Property<int>("RequestedQty")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("SuppliedQty")
                         .HasColumnType("integer");
@@ -131,11 +134,11 @@ namespace DemandTrack.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("DemandId");
-
                     b.HasIndex("ProductId");
 
-                    b.ToTable("DemandItems");
+                    b.HasIndex("DemandId", "ProductId");
+
+                    b.ToTable("DemandItems", (string)null);
                 });
 
             modelBuilder.Entity("DemandTrack.Models.Grade", b =>
@@ -294,6 +297,41 @@ namespace DemandTrack.Migrations
                     b.ToTable("ProductInventories", (string)null);
                 });
 
+            modelBuilder.Entity("DemandTrack.Models.Season", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsDefault");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Seasons", (string)null);
+                });
+
             modelBuilder.Entity("DemandTrack.Models.Supplier", b =>
                 {
                     b.Property<int>("Id")
@@ -302,16 +340,7 @@ namespace DemandTrack.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Address")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Code")
-                        .HasColumnType("text");
-
-                    b.Property<string>("ContactPerson")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Email")
+                    b.Property<string>("Contact")
                         .HasColumnType("text");
 
                     b.Property<bool>("IsActive")
@@ -319,9 +348,6 @@ namespace DemandTrack.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Phone")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -441,17 +467,19 @@ namespace DemandTrack.Migrations
 
             modelBuilder.Entity("DemandTrack.Models.Demand", b =>
                 {
-                    b.HasOne("DemandTrack.Models.Demand", "ParentDemand")
-                        .WithMany("Backorders")
-                        .HasForeignKey("ParentDemandId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("DemandTrack.Models.Season", "Season")
+                        .WithMany("Demands")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("DemandTrack.Models.Supplier", "Supplier")
                         .WithMany("Demands")
                         .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("ParentDemand");
+                    b.Navigation("Season");
 
                     b.Navigation("Supplier");
                 });
@@ -567,8 +595,6 @@ namespace DemandTrack.Migrations
 
             modelBuilder.Entity("DemandTrack.Models.Demand", b =>
                 {
-                    b.Navigation("Backorders");
-
                     b.Navigation("Invoices");
 
                     b.Navigation("Items");
@@ -591,6 +617,11 @@ namespace DemandTrack.Migrations
                     b.Navigation("Inventory");
 
                     b.Navigation("InventoryTransactions");
+                });
+
+            modelBuilder.Entity("DemandTrack.Models.Season", b =>
+                {
+                    b.Navigation("Demands");
                 });
 
             modelBuilder.Entity("DemandTrack.Models.Supplier", b =>

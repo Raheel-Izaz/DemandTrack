@@ -35,11 +35,7 @@ namespace DemandTrack.Controllers
                 {
                     Id = s.Id,
                     Name = s.Name,
-                    Code = s.Code,
-                    ContactPerson = s.ContactPerson,
-                    Phone = s.Phone,
-                    Email = s.Email,
-                    Address = s.Address,
+                    Contact = s.Contact,
                     IsActive = s.IsActive,
                     DemandsCount = s.Demands.Count,
                     InvoicesCount = s.Invoices.Count
@@ -67,11 +63,7 @@ namespace DemandTrack.Controllers
             {
                 Id = supplier.Id,
                 Name = supplier.Name,
-                Code = supplier.Code,
-                ContactPerson = supplier.ContactPerson,
-                Phone = supplier.Phone,
-                Email = supplier.Email,
-                Address = supplier.Address,
+                Contact = supplier.Contact,
                 IsActive = supplier.IsActive,
                 DemandsCount = supplier.Demands.Count,
                 InvoicesCount = supplier.Invoices.Count
@@ -90,11 +82,7 @@ namespace DemandTrack.Controllers
             var supplier = new Supplier
             {
                 Name = dto.Name.Trim(),
-                Code = dto.Code?.Trim(),
-                ContactPerson = dto.ContactPerson?.Trim(),
-                Phone = dto.Phone?.Trim(),
-                Email = dto.Email?.Trim(),
-                Address = dto.Address?.Trim(),
+                Contact = dto.Contact?.Trim(),
                 IsActive = true
             };
 
@@ -105,11 +93,7 @@ namespace DemandTrack.Controllers
             {
                 Id = supplier.Id,
                 Name = supplier.Name,
-                Code = supplier.Code,
-                ContactPerson = supplier.ContactPerson,
-                Phone = supplier.Phone,
-                Email = supplier.Email,
-                Address = supplier.Address,
+                Contact = supplier.Contact,
                 IsActive = supplier.IsActive,
                 DemandsCount = 0,
                 InvoicesCount = 0
@@ -127,11 +111,7 @@ namespace DemandTrack.Controllers
             }
 
             supplier.Name = dto.Name.Trim();
-            supplier.Code = dto.Code?.Trim();
-            supplier.ContactPerson = dto.ContactPerson?.Trim();
-            supplier.Phone = dto.Phone?.Trim();
-            supplier.Email = dto.Email?.Trim();
-            supplier.Address = dto.Address?.Trim();
+            supplier.Contact = dto.Contact?.Trim();
             supplier.IsActive = dto.IsActive;
 
             await _context.SaveChangesAsync();

@@ -1,4 +1,5 @@
 using DemandTrack.Data;
+using DemandTrack.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -10,6 +11,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {
         o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,6 +19,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+// Domain Services
+builder.Services.AddScoped<ISeasonService, SeasonService>();
+builder.Services.AddScoped<IDemandService, DemandService>();
 
 builder.Services.AddCors(options =>
 {
@@ -31,8 +37,6 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-
-
 
 var app = builder.Build();
 

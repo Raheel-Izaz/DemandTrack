@@ -15,9 +15,10 @@ namespace DemandTrack.Data
         public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
         public DbSet<Supplier> Suppliers => Set<Supplier>();
 
-        // Demands & Demand Items
-        public DbSet<Demand> Demands => Set<Demand>();
-        public DbSet<DemandItem> DemandItems => Set<DemandItem>();
+        // Seasons, Demands & Demand Items
+        public DbSet<Season> Seasons { get; set; } = null!;
+        public DbSet<Demand> Demands { get; set; } = null!;
+        public DbSet<DemandItem> DemandItems { get; set; } = null!;
 
         // Supplier Invoices & Items
         public DbSet<SupplierInvoice> SupplierInvoices => Set<SupplierInvoice>();
@@ -107,23 +108,48 @@ namespace DemandTrack.Data
                 entity.HasIndex(t => t.CreatedAt);
             });
 
-            // Demand relations
-            modelBuilder.Entity<Demand>()
-                .HasOne(d => d.Supplier)
-                .WithMany(s => s.Demands)
-                .HasForeignKey(d => d.SupplierId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // Season Entity Configuration
+            modelBuilder.Entity<Season>(entity =>
+            {
+                entity.ToTable("Seasons");
+                entity.HasKey(s => s.Id);
+                entity.Property(s => s.Name).IsRequired().HasMaxLength(100);
+                entity.Property(s => s.IsActive).HasDefaultValue(true);
+                entity.Property(s => s.IsDefault).HasDefaultValue(false);
 
-            modelBuilder.Entity<Demand>()
-                .HasOne(d => d.ParentDemand)
-                .WithMany(d => d.Backorders)
-                .HasForeignKey(d => d.ParentDemandId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(s => s.Name);
+                entity.HasIndex(s => s.IsDefault);
+            });
 
-            // DemandItem relations
+            // Demand relations and table configuration
+            modelBuilder.Entity<Demand>(entity =>
+            {
+                entity.ToTable("Demands");
+                entity.HasKey(d => d.Id);
+                entity.Property(d => d.DemandNumber).IsRequired().HasMaxLength(100);
+                entity.Property(d => d.Title).IsRequired().HasMaxLength(200);
+
+                entity.HasIndex(d => d.DemandNumber).IsUnique();
+
+                entity.HasOne(d => d.Season)
+                    .WithMany(s => s.Demands)
+                    .HasForeignKey(d => d.SeasonId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.Supplier)
+                    .WithMany(s => s.Demands)
+                    .HasForeignKey(d => d.SupplierId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // DemandItem relations and table configuration
             modelBuilder.Entity<DemandItem>(entity =>
             {
+                entity.ToTable("DemandItems");
+                entity.HasKey(di => di.Id);
                 entity.Property(di => di.UnitPrice).HasPrecision(18, 2);
+
+                entity.HasIndex(di => new { di.DemandId, di.ProductId });
 
                 entity.HasOne(di => di.Demand)
                     .WithMany(d => d.Items)
