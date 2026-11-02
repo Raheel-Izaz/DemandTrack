@@ -124,14 +124,13 @@ namespace DemandTrack.Services
                 throw new ArgumentException("A demand must contain at least one item.");
             }
 
-            // Validate products
+            // Validate products & fetch product catalog prices
             var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-            var existingProductIds = await _context.Products
+            var existingProducts = await _context.Products
                 .Where(p => productIds.Contains(p.Id))
-                .Select(p => p.Id)
-                .ToListAsync();
+                .ToDictionaryAsync(p => p.Id, p => p.DefaultUnitPrice);
 
-            var missingIds = productIds.Except(existingProductIds).ToList();
+            var missingIds = productIds.Except(existingProducts.Keys).ToList();
             if (missingIds.Count > 0)
             {
                 throw new ArgumentException($"Product ID(s) {string.Join(", ", missingIds)} do not exist.");
@@ -184,6 +183,7 @@ namespace DemandTrack.Services
             {
                 int suppliedQty = 0;
                 int remainingQty = itemReq.RequestedQty - suppliedQty;
+                decimal unitPrice = existingProducts.TryGetValue(itemReq.ProductId, out var defaultPrice) ? defaultPrice : 0.0m;
 
                 demand.Items.Add(new DemandItem
                 {
@@ -191,7 +191,7 @@ namespace DemandTrack.Services
                     RequestedQty = itemReq.RequestedQty,
                     SuppliedQty = suppliedQty,
                     RemainingQty = remainingQty,
-                    UnitPrice = itemReq.UnitPrice,
+                    UnitPrice = unitPrice,
                     Status = DemandItemStatus.Pending
                 });
             }
@@ -232,12 +232,11 @@ namespace DemandTrack.Services
             }
 
             var productIds = request.Items.Select(i => i.ProductId).Distinct().ToList();
-            var existingProductIds = await _context.Products
+            var existingProducts = await _context.Products
                 .Where(p => productIds.Contains(p.Id))
-                .Select(p => p.Id)
-                .ToListAsync();
+                .ToDictionaryAsync(p => p.Id, p => p.DefaultUnitPrice);
 
-            var missingIds = productIds.Except(existingProductIds).ToList();
+            var missingIds = productIds.Except(existingProducts.Keys).ToList();
             if (missingIds.Count > 0)
             {
                 throw new ArgumentException($"Product ID(s) {string.Join(", ", missingIds)} do not exist.");
@@ -258,6 +257,7 @@ namespace DemandTrack.Services
             {
                 int suppliedQty = 0;
                 int remainingQty = itemReq.RequestedQty - suppliedQty;
+                decimal unitPrice = existingProducts.TryGetValue(itemReq.ProductId, out var defaultPrice) ? defaultPrice : 0.0m;
 
                 demand.Items.Add(new DemandItem
                 {
@@ -266,7 +266,7 @@ namespace DemandTrack.Services
                     RequestedQty = itemReq.RequestedQty,
                     SuppliedQty = suppliedQty,
                     RemainingQty = remainingQty,
-                    UnitPrice = itemReq.UnitPrice,
+                    UnitPrice = unitPrice,
                     Status = DemandItemStatus.Pending
                 });
             }

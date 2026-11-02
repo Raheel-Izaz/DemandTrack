@@ -82,9 +82,6 @@ namespace DemandTrack.Dtos
 
         [Range(1, int.MaxValue, ErrorMessage = "RequestedQty must be greater than 0.")]
         public int RequestedQty { get; set; }
-
-        [Range(0, double.MaxValue, ErrorMessage = "UnitPrice must be non-negative.")]
-        public decimal UnitPrice { get; set; }
     }
 
     public class UpdateDemandRequest

@@ -1,6 +1,7 @@
 using DemandTrack.Dtos;
 using DemandTrack.Models;
 using DemandTrack.Services;
+using DemandTrack.Services.Exports;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DemandTrack.Controllers
@@ -10,10 +11,12 @@ namespace DemandTrack.Controllers
     public class DemandsController : ControllerBase
     {
         private readonly IDemandService _demandService;
+        private readonly IDemandExportService _demandExportService;
 
-        public DemandsController(IDemandService demandService)
+        public DemandsController(IDemandService demandService, IDemandExportService demandExportService)
         {
             _demandService = demandService;
+            _demandExportService = demandExportService;
         }
 
         /// <summary>
@@ -117,6 +120,60 @@ namespace DemandTrack.Controllers
             catch (KeyNotFoundException ex)
             {
                 return NotFound(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Export quantity-only purchase demand document as PDF
+        /// </summary>
+        [HttpGet("{id:int}/export/pdf")]
+        public async Task<IActionResult> ExportPdf(int id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var demand = await _demandService.GetDemandByIdAsync(id);
+                if (demand == null)
+                {
+                    return NotFound($"Demand with ID {id} not found.");
+                }
+
+                var pdfBytes = await _demandExportService.GeneratePdfAsync(id, cancellationToken);
+                return File(pdfBytes, "application/pdf", $"{demand.DemandNumber}.pdf");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Export quantity-only purchase demand spreadsheet as Excel (.xlsx)
+        /// </summary>
+        [HttpGet("{id:int}/export/excel")]
+        public async Task<IActionResult> ExportExcel(int id, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var demand = await _demandService.GetDemandByIdAsync(id);
+                if (demand == null)
+                {
+                    return NotFound($"Demand with ID {id} not found.");
+                }
+
+                var excelBytes = await _demandExportService.GenerateExcelAsync(id, cancellationToken);
+                return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{demand.DemandNumber}.xlsx");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
